@@ -329,7 +329,7 @@ else {
   function render(){
     let h = '<div class="logo">THE MODERATOR</div>';
     if (!joined) {
-      h += `<p class="tag">English Seminar · IFBA</p><div class="card"><h2>Enter your name</h2>
+      h += `<div class="card"><h2>Enter your name</h2>
         ${kickedMsg ? `<p class="muted" style="margin-bottom:10px">${esc(kickedMsg)}</p>` : ""}
         <input id="name" maxlength="20" placeholder="Your name" value="${esc(myName)}" autocomplete="off">
         <button class="full" id="join">Join</button></div>`;
@@ -340,8 +340,8 @@ else {
       const me = st.players.find(p => p.id === myId);
       const answered = (st.answered || []).includes(myId) || sentKey === selKey;
       if (st.phase === "lobby") {
-        h += `<div class="card"><h2>Hi, ${esc(myName)}! 👋</h2><p class="muted">You're in the lobby. Read the rules while the host starts the match.</p>
-          <p class="muted" style="margin-top:6px">${st.players.length} player${st.players.length === 1 ? "" : "s"} in the room.</p></div>
+        h += `<div class="card"><h2>Olá, ${esc(myName)}! 👋</h2><p class="muted">Você está no lobby. Leia as regras enquanto o host inicia a partida.</p>
+          <p class="muted" style="margin-top:6px">${st.players.length} jogador${st.players.length === 1 ? "" : "es"} na sala.</p></div>
           <div class="card">${RULES_HTML}</div>`;
       } else if (st.phase === "round") {
         const set = ROUNDS[st.round - 1];
