@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Moderator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0718;--panel:#160f2e;--panel2:#1f1640;--line:#3a2b6b;
+  --text:#efeaff;--muted:#a99fd0;--purple:#b26bff;--cyan:#38e8ff;
+  --ban:#ff4d6d;--mute:#ff9f1c;--warn:#ffd60a;--allow:#3ddc97;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100%}
+body{background:radial-gradient(1200px 600px at 10% -10%,#2a1257 0%,transparent 60%),radial-gradient(900px 500px at 110% 110%,#06364a 0%,transparent 60%),var(--bg);min-height:100vh}
+.wrap{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+.host .wrap{max-width:1100px}
+.logo{font-family:"Press Start 2P",monospace;font-size:20px;line-height:1.4;text-align:center;letter-spacing:1px;
+  background:linear-gradient(90deg,var(--purple),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;margin:8px 0 4px}
+.host .logo{font-size:30px}
+.tag{color:var(--muted);text-align:center;font-size:13px;margin-bottom:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 0 24px rgba(178,107,255,.08)}
+h2{font-size:18px;margin-bottom:10px}
+p{line-height:1.5}
+.muted{color:var(--muted)}
+input{width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:17px;outline:none}
+input:focus{border-color:var(--cyan)}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-weight:800;font-size:16px;padding:14px 18px;color:#0b0718;background:linear-gradient(90deg,var(--purple),var(--cyan))}
+button:disabled{opacity:.35;cursor:not-allowed}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+button.danger{background:var(--ban);color:#fff}
+.full{width:100%;margin-top:12px}
+.rules li{margin:8px 0 8px 18px;line-height:1.45}
+.pill{display:inline-block;font-weight:800;font-size:12px;padding:3px 8px;border-radius:999px;color:#0b0718;margin-right:6px;min-width:52px;text-align:center}
+.p-BAN{background:var(--ban);color:#fff}.p-MUTE{background:var(--mute)}.p-WARN{background:var(--warn)}.p-ALLOW{background:var(--allow)}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
+.timer{font-family:"Press Start 2P",monospace;font-size:20px;color:var(--cyan)}
+.timer.low{color:var(--ban)}
+.host .timer{font-size:44px}
+.bar{height:6px;background:var(--panel2);border-radius:6px;overflow:hidden;margin-bottom:14px}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan));transition:width .25s linear}
+.msg{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.msg .user{font-size:12px;color:var(--cyan);margin-bottom:6px;font-weight:600}
+.msg .text{font-size:16px;line-height:1.4;margin-bottom:12px}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.acts button{font-size:12px;padding:10px 2px;background:transparent;color:var(--text);border:1px solid var(--line)}
+.acts button.on.a-BAN{background:var(--ban);border-color:var(--ban);color:#fff}
+.acts button.on.a-MUTE{background:var(--mute);border-color:var(--mute);color:#0b0718}
+.acts button.on.a-WARN{background:var(--warn);border-color:var(--warn);color:#0b0718}
+.acts button.on.a-ALLOW{background:var(--allow);border-color:var(--allow);color:#0b0718}
+.result{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;margin-top:6px}
+.ok{color:var(--allow);font-weight:800}.bad{color:var(--ban);font-weight:800}
+.why{font-size:13px;color:var(--muted);margin-top:6px}
+.big{font-family:"Press Start 2P",monospace;font-size:26px;text-align:center;margin:10px 0;color:var(--cyan)}
+.rank{list-style:none}
+.rank li{display:flex;justify-content:space-between;padding:10px 12px;border-radius:10px;margin-bottom:6px;background:var(--panel2);font-weight:600}
+.rank li.me{outline:2px solid var(--cyan)}
+.rank li .pos{color:var(--purple);margin-right:10px;font-family:"Press Start 2P",monospace;font-size:12px}
+.players{display:flex;flex-wrap:wrap;gap:8px}
+.players span{background:var(--panel2);border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-weight:600}
+.players span.off{opacity:.35}
+.players span.done{border-color:var(--allow);color:var(--allow)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row button{flex:1}
+#qr{background:#fff;padding:12px;border-radius:12px;display:inline-block}
+.center{text-align:center}
+.status{position:fixed;bottom:8px;right:10px;font-size:11px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ban);margin-right:5px}
+.dot.on{background:var(--allow)}
+</style>
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"><div class="logo">THE MODERATOR</div><p class="tag">Connecting…</p></div>
+<div class="status"><span class="dot" id="dot"></span><span id="stxt">offline</span></div>
+<script>
+"use strict";
+/* ---------------- GAME CONTENT ---------------- */
+const ROUNDS = [
+  [ {t:"gg ez, you guys are trash", a:"WARN", w:"Trash talk: toxic, but it doesn't attack anyone's identity."},
+    {t:"Girls shouldn't play ranked, go back to the kitchen", a:"MUTE", w:"Sexism: attacks her for being a woman."},
+    {t:"I found your Instagram. I know which school you go to.", a:"BAN", w:"Stalking and a threat: online gender-based violence."},
+    {t:"Nice job, Ana! Carry us!", a:"ALLOW", w:"Positive, friendly chat."} ],
+  [ {t:"Send me private pics or I'll leak your real name", a:"BAN", w:"Sextortion: blackmail with intimate images."},
+    {t:"Omg a girl on the team, we're gonna lose", a:"MUTE", w:"Sexism: judges her skill by her gender."},
+    {t:"Stop doing that, noob", a:"WARN", w:"Rude, but common toxicity."},
+    {t:"I reported a player for harassing me, please check the replay", a:"ALLOW", w:"A report: never punish someone asking for help."} ],
+  [ {t:"Turn on your mic, girl, I want to hear your sexy voice", a:"BAN", w:"Sexual harassment."},
+    {t:"You only got that rank because some guy played for you", a:"MUTE", w:"Sexism: denies her skill because she is a woman."},
+    {t:"U all are so stupid", a:"WARN", w:"Generic insult: toxic, not identity-based."},
+    {t:"Anyone want to duo later? I play support", a:"ALLOW", w:"Normal game chat."} ],
+  [ {t:"I'll wait for you outside the gaming café on Rua Chile tonight", a:"BAN", w:"A real-world threat: the violence leaves the screen."},
+    {t:"Women can't aim, it's science", a:"MUTE", w:"Sexism disguised as a 'fact'."},
+    {t:"Uninstall the game, please", a:"WARN", w:"Trash talk."},
+    {t:"Thanks for the tips, coach! I learned a lot today", a:"ALLOW", w:"Positive chat."} ],
+  [ {t:"Her address is Av. Sete, 123. Go say hi.", a:"BAN", w:"Doxing: publishing someone's private information."},
+    {t:"Female streamers only get views because of their looks", a:"MUTE", w:"Sexism against women who gain visibility."},
+    {t:"Bro, you're so bad lol", a:"WARN", w:"Common toxicity."},
+    {t:"Our team has a female coach this season. Let's go!", a:"ALLOW", w:"Positive chat."} ],
+  [ {t:"I have your photos. Pay me or everyone will see them.", a:"BAN", w:"Sextortion."},
+    {t:"Shut up, nobody asked a girl about strategy", a:"MUTE", w:"Sexism that tries to silence her."},
+    {t:"This team is hopeless", a:"WARN", w:"Negative and toxic, but not identity-based."},
+    {t:"Women in esports deserve the same prize money", a:"ALLOW", w:"An opinion: freedom of expression."} ],
+  [ {t:"Every time you stream, I'll be there. You can't block me forever.", a:"BAN", w:"Stalking."},
+    {t:"Make me a sandwich and then we can talk", a:"MUTE", w:"Sexist stereotype."},
+    {t:"You're useless, delete your account", a:"WARN", w:"Generic insult."},
+    {t:"Is anyone else lagging? The server seems slow", a:"ALLOW", w:"Normal game chat."} ],
+  [ {t:"Keep talking and I'll post your phone number on Discord", a:"BAN", w:"A doxing threat."},
+    {t:"Girls only play games for attention", a:"MUTE", w:"Sexism."},
+    {t:"You're so slow, learn to play", a:"WARN", w:"Common toxicity."},
+    {t:"Someone is threatening my teammate, mods please help!", a:"ALLOW", w:"A report: never punish someone asking for help."} ]
+];
+const USERS = ["xXSniperXx","n00bSlayer","ShadowFox","Ana_GG","LagMaster","PixelQueen","TryHard99","CoachLu","DarkByte","NightOwl","GGWP_Br","Viper77"];
+const ACTIONS = ["BAN","MUTE","WARN","ALLOW"];
+const ROUND_MS = 60000, GRACE = 1500, MAX = 1000;
+const PTS = {4:1000, 3:500, 2:500, 1:250, 0:0};
+
+/* ---------------- SETUP ---------------- */
+const qs = new URLSearchParams(location.search);
+const IS_HOST = qs.has("host");
+const ROOM = (qs.get("room") || "ifba").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 24) || "ifba";
+const T = "the-moderator-x7q2/" + ROOM + "/";
+const BROKER = qs.get("b") === "emqx" ? "wss://broker.emqx.io:8084/mqtt" : "wss://broker.hivemq.com:8884/mqtt";
+const app = document.getElementById("app");
+if (IS_HOST) document.body.classList.add("host");
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const ls = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+};
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const scoreFor = n => PTS[n] ?? 0;
+
+let client = null, connected = false;
+function connect(onMsg){
+  if (!window.mqtt) { app.innerHTML = '<div class="logo">THE MODERATOR</div><div class="card"><p>Could not load the game. Check your internet connection and reload.</p></div>'; return; }
+  client = mqtt.connect(BROKER, { clientId: "tm_" + rid(), clean: true, reconnectPeriod: 2000, connectTimeout: 10000, keepalive: 30 });
+  client.on("connect", () => { connected = true; setStatus(); client.subscribe(IS_HOST ? [T + "join", T + "answer"] : [T + "state"], { qos: 1 }); onConnect && onConnect(); });
+  client.on("close", () => { connected = false; setStatus(); });
+  client.on("offline", () => { connected = false; setStatus(); });
+  client.on("message", (topic, payload, packet) => { let d; try { d = JSON.parse(payload.toString()); } catch(e){ return; } onMsg(topic.slice(T.length), d, packet); });
+}
+let onConnect = null;
+function setStatus(){ document.getElementById("dot").className = "dot" + (connected ? " on" : ""); document.getElementById("stxt").textContent = connected ? "online" : "reconnecting…"; }
+function pub(sub, data, retain){ if (client) client.publish(T + sub, JSON.stringify(data), { qos: 1, retain: !!retain }); }
+
+const RULES_HTML = `
+  <h2>How to play</h2>
+  <p class="muted">You are the moderator of an online game. Each round shows 4 chat messages. Give each message one action: every action is used <b>once</b> per round.</p>
+  <ul class="rules">
+    <li><span class="pill p-BAN">BAN</span>Threats, stalking, doxing (sharing private info), sextortion or sexual harassment.</li>
+    <li><span class="pill p-MUTE">MUTE</span>Sexist insults: attacking someone for being a woman.</li>
+    <li><span class="pill p-WARN">WARN</span>General toxicity: insults, trash talk, rude comments.</li>
+    <li><span class="pill p-ALLOW">ALLOW</span>Normal chat, opinions, and reports or calls for help.</li>
+  </ul>
+  <p class="muted" style="margin-top:8px">8 rounds · 60 seconds each · press <b>DONE</b> before time runs out or you score 0.</p>
+  <p class="muted" style="margin-top:6px">4 correct = 1000 pts · 2 correct = 500 · 1 correct = 250 · 0 correct = 0</p>`;
+
+function rankList(players, meId){
+  const sorted = players.slice().sort((a,b) => b.total - a.total || a.time - b.time);
+  return '<ol class="rank">' + sorted.map((p,i) =>
+    `<li class="${p.id === meId ? "me" : ""}"><span><span class="pos">${i+1}</span>${esc(p.name)}${p.id === meId ? " (you)" : ""}</span><span>${p.total} pts</span></li>`).join("") + "</ol>";
+}
+
+/* =========================================================
+   HOST
+   ========================================================= */
+if (IS_HOST) {
+  let S = null;
+  try { S = JSON.parse(ls.get("tm_host_" + ROOM) || "null"); } catch(e) { S = null; }
+  if (!S || !S.players) S = { gameId: rid(), kickId: rid(), phase: "lobby", round: 0, deadline: 0, roundStart: 0, order: [], users: [], players: {}, answers: {} };
+  const save = () => ls.set("tm_host_" + ROOM, JSON.stringify(S));
+  const playerUrl = location.origin + location.pathname + (ROOM !== "ifba" ? "?room=" + ROOM : "");
+  const active = p => Date.now() - (p.lastSeen || 0) < 15000;
+
+  function publicState(){
+    const players = Object.entries(S.players).map(([id,p]) => ({ id, name: p.name, total: p.total, time: p.time || 0 }));
+    const st = { gameId: S.gameId, kickId: S.kickId, phase: S.phase, round: S.round, deadline: S.deadline, now: Date.now(),
+      order: S.order, users: S.users, players, answered: Object.keys(S.answers) };
+    if (S.phase === "reveal" || S.phase === "final") st.results = S.answers;
+    return st;
+  }
+  function publish(){ save(); pub("state", publicState(), true); render(); }
+
+  function onMsg(sub, d){
+    if (!d || typeof d.id !== "string") return;
+    if (sub === "join") {
+      const name = String(d.name || "").trim().slice(0, 20); if (!name) return;
+      if (d.kickId !== S.kickId) return;
+      const p = S.players[d.id];
+      if (!p) { S.players[d.id] = { name, total: 0, time: 0, lastSeen: Date.now() }; publish(); }
+      else { const changed = p.name !== name; p.name = name; p.lastSeen = Date.now(); if (changed) publish(); else render(); }
+    } else if (sub === "answer") {
+      if (S.phase !== "round" || d.gameId !== S.gameId || d.round !== S.round) return;
+      const p = S.players[d.id]; if (!p || S.answers[d.id]) return;
+      const now = Date.now(); p.lastSeen = now;
+      const late = now > S.deadline + GRACE;
+      const set = ROUNDS[S.round - 1];
+      let correct = 0; const picks = {};
+      for (let i = 0; i < 4; i++) { const a = d.answers && d.answers[i]; picks[i] = ACTIONS.includes(a) ? a : null; if (picks[i] === set[i].a) correct++; }
+      const pts = late ? 0 : scoreFor(correct);
+      S.answers[d.id] = { pts, correct, late };
+      p.total += pts; p.time = (p.time || 0) + Math.min(now - S.roundStart, ROUND_MS);
+      const act = Object.entries(S.players).filter(([,q]) => active(q));
+      if (act.length && act.every(([id]) => S.answers[id])) endRound(); else publish();
+    }
+  }
+
+  function startRound(){
+    S.phase = "round"; S.order = shuffle([0,1,2,3]); S.users = shuffle(USERS).slice(0,4);
+    S.answers = {}; S.roundStart = Date.now(); S.deadline = S.roundStart + ROUND_MS; publish();
+  }
+  function endRound(){
+    for (const id of Object.keys(S.players)) if (!S.answers[id]) S.answers[id] = { pts: 0, correct: 0, missed: true };
+    S.phase = "reveal"; publish();
+  }
+  function startGame(){ for (const p of Object.values(S.players)) { p.total = 0; p.time = 0; } S.gameId = rid(); S.round = 1; startRound(); }
+  function next(){ if (S.round < ROUNDS.length) { S.round++; startRound(); } else { S.phase = "final"; publish(); } }
+  function newMatch(){ for (const p of Object.values(S.players)) { p.total = 0; p.time = 0; } S.gameId = rid(); S.phase = "lobby"; S.round = 0; S.answers = {}; publish(); }
+  function closeRoom(){ if (!confirm("Remove everyone from the room?")) return; S = { gameId: rid(), kickId: rid(), phase: "lobby", round: 0, deadline: 0, roundStart: 0, order: [], users: [], players: {}, answers: {} }; publish(); }
+
+  setInterval(() => {
+    if (S.phase === "round") { updateTimer(S.deadline); if (Date.now() > S.deadline + GRACE) endRound(); }
+  }, 250);
+  setInterval(() => { if (connected) pub("state", publicState(), true); if (S.phase === "lobby") render(); }, 4000);
+
+  function render(){
+    const ps = Object.entries(S.players);
+    let h = '<div class="logo">THE MODERATOR</div><p class="tag">Host screen · room "' + esc(ROOM) + '"</p>';
+    if (S.phase === "lobby") {
+      const act = ps.filter(([,p]) => active(p));
+      h += `<div class="grid2"><div class="card center"><h2>Scan to join</h2><div id="qr"></div><p class="muted" style="margin-top:10px;word-break:break-all">${esc(playerUrl)}</p></div>
+        <div class="card"><h2>Players online: ${act.length}</h2><div class="players">${ps.length ? ps.map(([,p]) => `<span class="${active(p) ? "" : "off"}">${esc(p.name)}</span>`).join("") : '<span class="muted" style="border:none;background:none">Waiting for players…</span>'}</div>
+        <button class="full" id="start" ${act.length ? "" : "disabled"}>Start match</button>
+        ${ps.length ? '<button class="full ghost" id="close">Remove everyone</button>' : ""}</div></div>
+        <div class="card">${RULES_HTML}</div>`;
+    } else if (S.phase === "round") {
+      const set = ROUNDS[S.round - 1];
+      h += `<div class="topbar"><h2>Round ${S.round} / ${ROUNDS.length}</h2><div class="timer" id="timer">60</div></div><div class="bar"><i id="tbar"></i></div>
+        <div class="grid2"><div>${S.order.map((i,k) => `<div class="msg"><div class="user">${esc(S.users[k] || "player")}</div><div class="text">${esc(set[i].t)}</div></div>`).join("")}</div>
+        <div class="card"><h2>Answered: ${Object.keys(S.answers).length} / ${ps.filter(([,p]) => active(p)).length}</h2>
+        <div class="players">${ps.map(([id,p]) => `<span class="${S.answers[id] ? "done" : ""}">${esc(p.name)}</span>`).join("")}</div>
+        <button class="full ghost" id="end">End round now</button></div></div>`;
+    } else if (S.phase === "reveal") {
+      const set = ROUNDS[S.round - 1];
+      const perfect = Object.values(S.answers).filter(a => a.correct === 4 && !a.late).length;
+      h += `<div class="topbar"><h2>Round ${S.round} / ${ROUNDS.length} · answers</h2><span class="muted">${perfect} perfect moderator${perfect === 1 ? "" : "s"}</span></div>
+        <div class="grid2"><div>${S.order.map((i,k) => `<div class="msg"><div class="user">${esc(S.users[k] || "player")}</div><div class="text">${esc(set[i].t)}</div><span class="pill p-${set[i].a}">${set[i].a}</span><div class="why">${esc(set[i].w)}</div></div>`).join("")}</div>
+        <div class="card"><h2>Ranking</h2>${rankList(publicState().players)}<button class="full" id="next">${S.round < ROUNDS.length ? "Next round" : "Final ranking"}</button></div></div>`;
+    } else if (S.phase === "final") {
+      h += `<div class="card"><div class="big">FINAL RANKING</div>${rankList(publicState().players)}
+        <div class="row" style="margin-top:12px"><button id="again">New match</button><button class="danger" id="close">Remove everyone</button></div></div>`;
+    }
+    app.innerHTML = h;
+    const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
+    on("start", startGame); on("close", closeRoom); on("end", endRound); on("next", next); on("again", newMatch);
+    const qr = document.getElementById("qr");
+    if (qr && window.QRCode) new QRCode(qr, { text: playerUrl, width: 220, height: 220 });
+    if (S.phase === "round") updateTimer(S.deadline);
+  }
+  onConnect = () => publish();
+  connect(onMsg);
+  render();
+}
+
+/* =========================================================
+   PLAYER
+   ========================================================= */
+else {
+  let myId = ls.get("tm_id"); if (!myId) { myId = rid(); ls.set("tm_id", myId); }
+  let myName = ls.get("tm_name") || "";
+  let joined = false, myKick = null, st = null, offset = 0, kickedMsg = "";
+  let sel = {}, selKey = "", sentKey = "", lastRenderKey = "";
+
+  function onMsg(sub, d, packet){
+    if (sub !== "state" || !d || !d.gameId) return;
+    if (!packet.retain && typeof d.now === "number") offset = d.now - Date.now();
+    st = d;
+    if (!joined) return;
+    if (joined && myKick && d.kickId !== myKick) { joined = false; myKick = null; kickedMsg = "The host closed the room. Enter your name to join again."; }
+    const key = d.gameId + ":" + d.round;
+    if (key !== selKey) { selKey = key; sel = {}; }
+    const rk = [joined, d.phase, d.gameId, d.round, (d.answered || []).includes(myId), d.players.length, d.players.map(p => p.name + p.total).join("|")].join("/");
+    if (rk !== lastRenderKey || d.phase === "lobby") render();
+  }
+  function join(){
+    const inp = document.getElementById("name");
+    const n = (inp ? inp.value : myName).trim().slice(0, 20);
+    if (!n) { inp && inp.focus(); return; }
+    myName = n; ls.set("tm_name", n); joined = true; kickedMsg = "";
+    myKick = st ? st.kickId : null;
+    pub("join", { id: myId, name: myName, kickId: myKick });
+    render();
+  }
+  setInterval(() => {
+    if (!joined || !connected) return;
+    if (!myKick && st) myKick = st.kickId;
+    pub("join", { id: myId, name: myName, kickId: myKick });
+  }, 5000);
+  setInterval(() => { if (st && st.phase === "round" && joined) { updateTimer(st.deadline - offset); updateDone(); } }, 250);
+
+  function timeLeft(){ return st ? (st.deadline - offset) - Date.now() : 0; }
+  function updateDone(){
+    const b = document.getElementById("done"); if (!b) return;
+    const full = Object.keys(sel).length === 4;
+    const left = timeLeft();
+    b.disabled = !full || left <= 0;
+    b.textContent = left <= 0 ? "Time's up · 0 points" : full ? "DONE" : `DONE (${Object.keys(sel).length}/4)`;
+  }
+  function pick(i, a){
+    if (timeLeft() <= 0) return;
+    for (const k of Object.keys(sel)) if (sel[k] === a && +k !== i) delete sel[k];
+    sel[i] = a; render(true);
+  }
+  function done(){
+    if (Object.keys(sel).length !== 4 || timeLeft() <= 0) return;
+    sentKey = selKey;
+    pub("answer", { id: myId, gameId: st.gameId, round: st.round, answers: sel });
+    render(true);
+  }
+
+  function render(){
+    let h = '<div class="logo">THE MODERATOR</div>';
+    if (!joined) {
+      h += `<p class="tag">English Seminar · IFBA</p><div class="card"><h2>Enter your name</h2>
+        ${kickedMsg ? `<p class="muted" style="margin-bottom:10px">${esc(kickedMsg)}</p>` : ""}
+        <input id="name" maxlength="20" placeholder="Your name" value="${esc(myName)}" autocomplete="off">
+        <button class="full" id="join">Join</button></div>`;
+      lastRenderKey = "";
+    } else if (!st) {
+      h += '<div class="card center"><p>Connecting to the room…</p></div>';
+    } else {
+      const me = st.players.find(p => p.id === myId);
+      const answered = (st.answered || []).includes(myId) || sentKey === selKey;
+      if (st.phase === "lobby") {
+        h += `<div class="card"><h2>Hi, ${esc(myName)}! 👋</h2><p class="muted">You're in the lobby. Read the rules while the host starts the match.</p>
+          <p class="muted" style="margin-top:6px">${st.players.length} player${st.players.length === 1 ? "" : "s"} in the room.</p></div>
+          <div class="card">${RULES_HTML}</div>`;
+      } else if (st.phase === "round") {
+        const set = ROUNDS[st.round - 1];
+        h += `<div class="topbar"><h2>Round ${st.round} / ${ROUNDS.length}</h2><div class="timer" id="timer"></div></div><div class="bar"><i id="tbar"></i></div>`;
+        if (answered) {
+          h += `<div class="card center"><div class="big">✔</div><p>Answer sent! Waiting for the other moderators…</p></div>`;
+        } else {
+          h += st.order.map((i,k) => `<div class="msg"><div class="user">${esc((st.users || [])[k] || "player")}</div><div class="text">${esc(set[i].t)}</div>
+            <div class="acts">${ACTIONS.map(a => `<button class="a-${a} ${sel[i] === a ? "on" : ""}" data-i="${i}" data-a="${a}">${a}</button>`).join("")}</div></div>`).join("");
+          h += `<button class="full" id="done">DONE</button>`;
+        }
+      } else if (st.phase === "reveal" || st.phase === "final") {
+        const set = ROUNDS[st.round - 1];
+        const r = (st.results || {})[myId];
+        if (st.phase === "reveal") {
+          h += `<div class="card center"><h2>Round ${st.round} / ${ROUNDS.length}</h2>
+            <div class="big">+${r ? r.pts : 0}</div><p class="muted">${!r || r.missed ? "No answer this round." : r.late ? "Too late: 0 points." : r.correct + " of 4 correct"}</p>
+            <p style="margin-top:6px">Total: <b>${me ? me.total : 0} pts</b></p></div>`;
+          h += st.order.map((i,k) => { const mine = sel[i]; const ok = mine === set[i].a;
+            return `<div class="msg"><div class="text">${esc(set[i].t)}</div>
+              <div class="result"><span>Answer: <span class="pill p-${set[i].a}">${set[i].a}</span></span>${mine ? `<span class="${ok ? "ok" : "bad"}">${ok ? "✔" : "✘ you: " + mine}</span>` : ""}</div>
+              <div class="why">${esc(set[i].w)}</div></div>`; }).join("");
+          h += '<p class="muted center">Waiting for the host…</p>';
+        } else {
+          const sorted = st.players.slice().sort((a,b) => b.total - a.total || a.time - b.time);
+          const pos = sorted.findIndex(p => p.id === myId) + 1;
+          h += `<div class="card"><div class="big">GAME OVER</div><p class="center">${pos ? `You finished <b>#${pos}</b> with <b>${me.total} pts</b>` : ""}</p></div>
+            <div class="card"><h2>Final ranking</h2>${rankList(st.players, myId)}</div>`;
+        }
+      }
+      lastRenderKey = [joined, st.phase, st.gameId, st.round, answered, st.players.length, st.players.map(p => p.name + p.total).join("|")].join("/");
+    }
+    app.innerHTML = h;
+    const j = document.getElementById("join"); if (j) j.onclick = join;
+    const n = document.getElementById("name"); if (n) n.onkeydown = e => { if (e.key === "Enter") join(); };
+    const d = document.getElementById("done"); if (d) d.onclick = done;
+    app.querySelectorAll(".acts button").forEach(b => b.onclick = () => pick(+b.dataset.i, b.dataset.a));
+    if (st && st.phase === "round" && joined) { updateTimer(st.deadline - offset); updateDone(); }
+  }
+  connect(onMsg);
+  render();
+}
+
+/* ---------------- shared timer ---------------- */
+function updateTimer(deadline){
+  const el = document.getElementById("timer"), bar = document.getElementById("tbar");
+  const left = Math.max(0, deadline - Date.now());
+  if (el) { el.textContent = Math.ceil(left / 1000); el.className = "timer" + (left < 10000 ? " low" : ""); }
+  if (bar) bar.style.width = (left / ROUND_MS * 100) + "%";
+}
+</script>
+</body>
+</html>
