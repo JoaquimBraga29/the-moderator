@@ -169,13 +169,16 @@ const ls = {
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const scoreFor = n => PTS[n] ?? 0;
 
-const BROKERS = qs.get("broker") ? qs.get("broker").split(",") : [({ emqx: "wss://broker.emqx.io:8084/mqtt", hivemq: "wss://broker.hivemq.com:8884/mqtt" })[qs.get("b")] || "wss://mqtt.eclipseprojects.io:443/mqtt"];
-const VERSION = "v7";
+// Public brokers are free but sometimes slow or down, so every device connects to all of them
+// and sends through each one that is up. Two devices meet as long as they share one working broker.
+const ALL_BROKERS = ["wss://broker.hivemq.com:8884/mqtt", "wss://broker.emqx.io:8084/mqtt", "wss://mqtt.eclipseprojects.io:443/mqtt"];
+const BROKERS = qs.get("broker") ? qs.get("broker").split(",") : ALL_BROKERS;
+const VERSION = "v8";
 let clients = [], connected = false, lastErr = "";
 function connect(onMsg){
   if (!window.mqtt) { app.innerHTML = '<div class="body"><div class="card red"><p>Could not load the game. Check your internet connection and reload.</p></div></div>'; return; }
   BROKERS.forEach(url => {
-    const c = mqtt.connect(url, { clientId: "tm_" + rid(), clean: true, reconnectPeriod: 3000, connectTimeout: 10000, keepalive: 30 });
+    const c = mqtt.connect(url, { clientId: "tm_" + rid(), clean: true, reconnectPeriod: 3000, connectTimeout: 15000, keepalive: 30 });
     c.on("connect", () => { setStatus(); c.subscribe(IS_HOST ? [T + "join", T + "answer"] : [T + "state"], { qos: 1 }); onConnect && onConnect(); });
     c.on("close", setStatus); c.on("offline", setStatus); c.on("error", e => { lastErr = (e && e.message) || String(e); setStatus(); });
     c.on("message", (topic, payload, packet) => { let d; try { const txt = typeof payload === "string" ? payload : (payload instanceof Uint8Array ? new TextDecoder().decode(payload) : String(payload)); d = JSON.parse(txt); } catch(e){ return; } onMsg(topic.slice(T.length), d, packet); });
@@ -188,8 +191,8 @@ function setStatus(){
   const n = clients.filter(c => c.connected).length;
   connected = n > 0;
   document.getElementById("dot").className = "dot" + (connected ? " on" : "");
-  const host = (BROKERS[0].match(/\/\/([^.:\/]+(?:\.[^.:\/]+)?)/) || [,"?"])[1];
-  document.getElementById("stxt").textContent = VERSION + " · " + host + " · " + (connected ? "conectado" : "sem conexão" + (lastErr ? " (" + lastErr.slice(0, 40) + ")" : "…"));
+  const names = clients.filter(c => c.connected).map(c => (c.options.hostname || "").split(".").slice(-2, -1)[0] || "?");
+  document.getElementById("stxt").textContent = VERSION + " · " + (connected ? `conectado (${n}/${clients.length}: ${names.join(", ")})` : "sem conexão" + (lastErr ? " (" + lastErr.slice(0, 40) + ")" : "…"));
 }
 function pub(sub, data, retain){ const msg = JSON.stringify(data); clients.forEach(c => { if (c.connected) c.publish(T + sub, msg, { qos: 1, retain: !!retain }); }); }
 
