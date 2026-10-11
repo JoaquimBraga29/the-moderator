@@ -105,6 +105,7 @@ button.success{background:var(--green)}button.success:hover{background:#1a7f45}
 .dot.on{background:var(--green)}
 </style>
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script>if(!window.mqtt)document.write('<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"><\/script>');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -156,7 +157,7 @@ const qs = new URLSearchParams(location.search);
 const IS_HOST = qs.has("host");
 const ROOM = (qs.get("room") || "ifba").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 24) || "ifba";
 const T = "the-moderator-x7q2/" + ROOM + "/";
-const BROKER = qs.get("b") === "emqx" ? "wss://broker.emqx.io:8084/mqtt" : "wss://broker.hivemq.com:8884/mqtt";
+const BROKER = qs.get("broker") || (qs.get("b") === "emqx" ? "wss://broker.emqx.io:8084/mqtt" : "wss://broker.hivemq.com:8884/mqtt");
 const app = document.getElementById("app");
 if (IS_HOST) document.body.classList.add("host");
 
@@ -176,10 +177,10 @@ function connect(onMsg){
   client.on("connect", () => { connected = true; setStatus(); client.subscribe(IS_HOST ? [T + "join", T + "answer"] : [T + "state"], { qos: 1 }); onConnect && onConnect(); });
   client.on("close", () => { connected = false; setStatus(); });
   client.on("offline", () => { connected = false; setStatus(); });
-  client.on("message", (topic, payload, packet) => { let d; try { d = JSON.parse(payload.toString()); } catch(e){ return; } onMsg(topic.slice(T.length), d, packet); });
+  client.on("message", (topic, payload, packet) => { let d; try { const txt = typeof payload === "string" ? payload : (payload instanceof Uint8Array ? new TextDecoder().decode(payload) : String(payload)); d = JSON.parse(txt); } catch(e){ return; } onMsg(topic.slice(T.length), d, packet); });
 }
 let onConnect = null;
-function setStatus(){ document.getElementById("dot").className = "dot" + (connected ? " on" : ""); document.getElementById("stxt").textContent = connected ? "online" : "reconnecting…"; }
+function setStatus(){ document.getElementById("dot").className = "dot" + (connected ? " on" : ""); document.getElementById("stxt").textContent = connected ? "conectado" : "sem conexão…"; }
 function pub(sub, data, retain){ if (client) client.publish(T + sub, JSON.stringify(data), { qos: 1, retain: !!retain }); }
 
 /* ---------------- UI HELPERS (Discord look) ---------------- */
