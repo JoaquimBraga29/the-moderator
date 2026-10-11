@@ -157,7 +157,6 @@ const qs = new URLSearchParams(location.search);
 const IS_HOST = qs.has("host");
 const ROOM = (qs.get("room") || "ifba").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 24) || "ifba";
 const T = "the-moderator-x7q2/" + ROOM + "/";
-const BROKER = qs.get("broker") || (qs.get("b") === "emqx" ? "wss://broker.emqx.io:8084/mqtt" : "wss://broker.hivemq.com:8884/mqtt");
 const app = document.getElementById("app");
 if (IS_HOST) document.body.classList.add("host");
 
@@ -170,18 +169,29 @@ const ls = {
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const scoreFor = n => PTS[n] ?? 0;
 
-let client = null, connected = false;
+const BROKERS = qs.get("broker") ? qs.get("broker").split(",") : [({ emqx: "wss://broker.emqx.io:8084/mqtt", hivemq: "wss://broker.hivemq.com:8884/mqtt" })[qs.get("b")] || "wss://mqtt.eclipseprojects.io:443/mqtt"];
+const VERSION = "v7";
+let clients = [], connected = false, lastErr = "";
 function connect(onMsg){
   if (!window.mqtt) { app.innerHTML = '<div class="body"><div class="card red"><p>Could not load the game. Check your internet connection and reload.</p></div></div>'; return; }
-  client = mqtt.connect(BROKER, { clientId: "tm_" + rid(), clean: true, reconnectPeriod: 2000, connectTimeout: 10000, keepalive: 30 });
-  client.on("connect", () => { connected = true; setStatus(); client.subscribe(IS_HOST ? [T + "join", T + "answer"] : [T + "state"], { qos: 1 }); onConnect && onConnect(); });
-  client.on("close", () => { connected = false; setStatus(); });
-  client.on("offline", () => { connected = false; setStatus(); });
-  client.on("message", (topic, payload, packet) => { let d; try { const txt = typeof payload === "string" ? payload : (payload instanceof Uint8Array ? new TextDecoder().decode(payload) : String(payload)); d = JSON.parse(txt); } catch(e){ return; } onMsg(topic.slice(T.length), d, packet); });
+  BROKERS.forEach(url => {
+    const c = mqtt.connect(url, { clientId: "tm_" + rid(), clean: true, reconnectPeriod: 3000, connectTimeout: 10000, keepalive: 30 });
+    c.on("connect", () => { setStatus(); c.subscribe(IS_HOST ? [T + "join", T + "answer"] : [T + "state"], { qos: 1 }); onConnect && onConnect(); });
+    c.on("close", setStatus); c.on("offline", setStatus); c.on("error", e => { lastErr = (e && e.message) || String(e); setStatus(); });
+    c.on("message", (topic, payload, packet) => { let d; try { const txt = typeof payload === "string" ? payload : (payload instanceof Uint8Array ? new TextDecoder().decode(payload) : String(payload)); d = JSON.parse(txt); } catch(e){ return; } onMsg(topic.slice(T.length), d, packet); });
+    clients.push(c);
+  });
+  setStatus();
 }
 let onConnect = null;
-function setStatus(){ document.getElementById("dot").className = "dot" + (connected ? " on" : ""); document.getElementById("stxt").textContent = connected ? "conectado" : "sem conexão…"; }
-function pub(sub, data, retain){ if (client) client.publish(T + sub, JSON.stringify(data), { qos: 1, retain: !!retain }); }
+function setStatus(){
+  const n = clients.filter(c => c.connected).length;
+  connected = n > 0;
+  document.getElementById("dot").className = "dot" + (connected ? " on" : "");
+  const host = (BROKERS[0].match(/\/\/([^.:\/]+(?:\.[^.:\/]+)?)/) || [,"?"])[1];
+  document.getElementById("stxt").textContent = VERSION + " · " + host + " · " + (connected ? "conectado" : "sem conexão" + (lastErr ? " (" + lastErr.slice(0, 40) + ")" : "…"));
+}
+function pub(sub, data, retain){ const msg = JSON.stringify(data); clients.forEach(c => { if (c.connected) c.publish(T + sub, msg, { qos: 1, retain: !!retain }); }); }
 
 /* ---------------- UI HELPERS (Discord look) ---------------- */
 const ICON = { BAN: "🔨", MUTE: "🔇", WARN: "⚠️", ALLOW: "✅" };
@@ -230,7 +240,7 @@ if (IS_HOST) {
   function publicState(){
     const players = Object.entries(S.players).map(([id,p]) => ({ id, name: p.name, total: p.total, time: p.time || 0 }));
     const st = { gameId: S.gameId, kickId: S.kickId, phase: S.phase, round: S.round, deadline: S.deadline, now: Date.now(),
-      order: S.order, users: S.users, players, answered: Object.keys(S.answers), nextAt: S.nextAt || 0 };
+      order: S.order, users: S.users, players, answered: Object.keys(S.answers), nextAt: S.nextAt || 0, left: S.phase === "round" ? Math.max(0, S.deadline - Date.now()) : 0 };
     if (S.phase === "reveal" || S.phase === "final") st.results = S.answers;
     return st;
   }
@@ -277,7 +287,8 @@ if (IS_HOST) {
   setInterval(() => {
     if (S.phase === "round") { updateTimer(S.deadline); if (Date.now() > S.deadline + GRACE) endRound(); }
   }, 250);
-  setInterval(() => { if (connected) pub("state", publicState(), true); if (S.phase === "lobby") render(); }, 4000);
+  let beat = 0;
+  setInterval(() => { beat++; if (connected && (S.phase === "round" || beat % 2 === 0)) pub("state", publicState(), true); if (S.phase === "lobby" && beat % 2 === 0) render(); }, 2000);
 
   function render(){
     const ps = Object.entries(S.players);
@@ -333,12 +344,17 @@ if (IS_HOST) {
 else {
   let myId = ls.get("tm_id"); if (!myId) { myId = rid(); ls.set("tm_id", myId); }
   let myName = ls.get("tm_name") || "";
-  let joined = false, myKick = null, st = null, offset = 0, kickedMsg = "";
+  let joined = false, myKick = null, st = null, localDeadline = 0, deadlineKey = "", kickedMsg = "";
   let sel = {}, selKey = "", sentKey = null, lastRenderKey = "";
 
   function onMsg(sub, d, packet){
     if (sub !== "state" || !d || !d.gameId) return;
-    if (!packet.retain && typeof d.now === "number") offset = d.now - Date.now();
+    if (d.phase === "round" && typeof d.left === "number") {
+      // Sync by remaining time (not wall clock), so phones with wrong clocks stay in step with the host.
+      const k = d.gameId + ":" + d.round, cand = Date.now() + d.left;
+      if (k !== deadlineKey) { deadlineKey = k; localDeadline = cand; }
+      else if (!packet.retain && Math.abs(cand - localDeadline) > 400) localDeadline = cand;
+    }
     st = d;
     if (!joined) return;
     if (joined && myKick && d.kickId !== myKick) { joined = false; myKick = null; kickedMsg = "The host closed the room. Enter your name to join again."; }
@@ -362,9 +378,9 @@ else {
     if (!myKick && st) myKick = st.kickId;
     pub("join", { id: myId, name: myName, kickId: myKick });
   }, 5000);
-  setInterval(() => { if (!st || !joined) return; if (st.phase === "round") { updateTimer(st.deadline - offset); updateDone(); } }, 250);
+  setInterval(() => { if (!st || !joined) return; if (st.phase === "round") { updateTimer(localDeadline); updateDone(); } }, 250);
 
-  function timeLeft(){ return st ? (st.deadline - offset) - Date.now() : 0; }
+  function timeLeft(){ return st ? localDeadline - Date.now() : 0; }
   function updateDone(){
     const b = document.getElementById("done"); if (!b) return;
     const full = Object.keys(sel).length === 4;
@@ -448,7 +464,7 @@ else {
     const n = document.getElementById("name"); if (n) n.onkeydown = e => { if (e.key === "Enter") join(); };
     const d = document.getElementById("done"); if (d) d.onclick = done;
     app.querySelectorAll(".acts button").forEach(b => b.onclick = () => pick(+b.dataset.i, b.dataset.a));
-    if (st && st.phase === "round" && joined) { updateTimer(st.deadline - offset); updateDone(); }
+    if (st && st.phase === "round" && joined) { updateTimer(localDeadline); updateDone(); }
   }
   connect(onMsg);
   render();
