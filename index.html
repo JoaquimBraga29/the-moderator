@@ -148,7 +148,7 @@ const ROUNDS = [
 ];
 const USERS = ["xXSniperXx","n00bSlayer","ShadowFox","Ana_GG","LagMaster","PixelQueen","TryHard99","CoachLu","DarkByte","NightOwl","GGWP_Br","Viper77"];
 const ACTIONS = ["BAN","MUTE","WARN","ALLOW"];
-const ROUND_MS = 60000, GRACE = 1500, MAX = 1000;
+const ROUND_MS = 60000, GRACE = 1500, MAX = 1000, NEXT_MS = 3000;
 const PTS = {4:1000, 3:500, 2:500, 1:250, 0:0};
 
 /* ---------------- SETUP ---------------- */
@@ -229,7 +229,7 @@ if (IS_HOST) {
   function publicState(){
     const players = Object.entries(S.players).map(([id,p]) => ({ id, name: p.name, total: p.total, time: p.time || 0 }));
     const st = { gameId: S.gameId, kickId: S.kickId, phase: S.phase, round: S.round, deadline: S.deadline, now: Date.now(),
-      order: S.order, users: S.users, players, answered: Object.keys(S.answers) };
+      order: S.order, users: S.users, players, answered: Object.keys(S.answers), nextAt: S.nextAt || 0 };
     if (S.phase === "reveal" || S.phase === "final") st.results = S.answers;
     return st;
   }
@@ -269,6 +269,7 @@ if (IS_HOST) {
   }
   function startGame(){ for (const p of Object.values(S.players)) { p.total = 0; p.time = 0; } S.gameId = rid(); S.round = 1; startRound(); }
   function next(){ if (S.round < ROUNDS.length) { S.round++; startRound(); } else { S.phase = "final"; publish(); } }
+  function endMatch(){ if (!confirm("End the match now and show the final ranking?")) return; S.phase = "final"; S.nextAt = 0; publish(); }
   function newMatch(){ for (const p of Object.values(S.players)) { p.total = 0; p.time = 0; } S.gameId = rid(); S.phase = "lobby"; S.round = 0; S.answers = {}; publish(); }
   function closeRoom(){ if (!confirm("Remove everyone from the room?")) return; S = { gameId: rid(), kickId: rid(), phase: "lobby", round: 0, deadline: 0, roundStart: 0, order: [], users: [], players: {}, answers: {} }; publish(); }
 
@@ -298,7 +299,7 @@ if (IS_HOST) {
           ${S.order.map((i,k) => chatMsg(S.users[k] || "player", set[i].t, "", k)).join("")}</div>
         <div><div class="card"><h2>Answered — ${Object.keys(S.answers).length} / ${actN}</h2>
           <ul class="members">${ps.map(([id,p]) => `<li class="${S.answers[id] ? "" : "wait"}">${avatar(p.name, true)}<span style="color:${nameColor(p.name)}">${esc(p.name)}</span>${S.answers[id] ? '<span class="tick">✔ done</span>' : '<span class="st"></span>'}</li>`).join("")}</ul>
-          <button class="full ghost" id="end">End round now</button></div></div></div>`;
+          <button class="full ghost" id="end">End round now</button><button class="full danger" id="endmatch">End match</button></div></div></div>`;
     } else if (S.phase === "reveal") {
       const set = ROUNDS[S.round - 1];
       const perfect = Object.values(S.answers).filter(a => a.correct === 4 && !a.late).length;
@@ -306,7 +307,7 @@ if (IS_HOST) {
       h += `<div class="grid2"><div>
           ${S.order.map((i,k) => chatMsg(S.users[k] || "player", set[i].t, `<span class="pill p-${set[i].a}">${ICON[set[i].a]} ${set[i].a}</span><div class="reply">🛡️ ${esc(set[i].w)}</div>`, k)).join("")}</div>
         <div><div class="card"><h2>🏆 Ranking</h2>${rankList(publicState().players)}
-          <button class="full" id="next">${S.round < ROUNDS.length ? "Next round ▸" : "Final ranking 🏆"}</button></div></div></div>`;
+          <button class="full" id="next">${S.round < ROUNDS.length ? "Next round ▸" : "Final ranking 🏆"}</button><button class="full danger" id="endmatch">End match</button></div></div></div>`;
     } else if (S.phase === "final") {
       h += header("results", "final ranking") + '<div class="body">';
       h += `<div class="card yellow" style="max-width:640px;margin:0 auto 14px"><div class="big center">🏆 FINAL RANKING</div>${rankList(publicState().players)}
@@ -315,7 +316,7 @@ if (IS_HOST) {
     h += "</div>";
     app.innerHTML = h;
     const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
-    on("start", startGame); on("close", closeRoom); on("end", endRound); on("next", next); on("again", newMatch);
+    on("start", startGame); on("close", closeRoom); on("end", endRound); on("next", next); on("again", newMatch); on("endmatch", endMatch);
     const qr = document.getElementById("qr");
     if (qr && window.QRCode) new QRCode(qr, { text: playerUrl, width: 220, height: 220 });
     if (S.phase === "round") updateTimer(S.deadline);
@@ -360,7 +361,7 @@ else {
     if (!myKick && st) myKick = st.kickId;
     pub("join", { id: myId, name: myName, kickId: myKick });
   }, 5000);
-  setInterval(() => { if (st && st.phase === "round" && joined) { updateTimer(st.deadline - offset); updateDone(); } }, 250);
+  setInterval(() => { if (!st || !joined) return; if (st.phase === "round") { updateTimer(st.deadline - offset); updateDone(); } }, 250);
 
   function timeLeft(){ return st ? (st.deadline - offset) - Date.now() : 0; }
   function updateDone(){
@@ -453,6 +454,11 @@ else {
 }
 
 /* ---------------- shared timer ---------------- */
+function updateNext(at){
+  const el = document.getElementById("nextc"); if (!el) return;
+  const secs = Math.max(0, Math.ceil((at - Date.now()) / 1000));
+  el.textContent = secs > 0 ? "next in " + secs + "…" : "starting…";
+}
 function updateTimer(deadline){
   const el = document.getElementById("timer"), bar = document.getElementById("tbar");
   const left = Math.max(0, deadline - Date.now());
