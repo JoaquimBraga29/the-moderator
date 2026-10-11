@@ -5,82 +5,113 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>The Moderator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0b0718;--panel:#160f2e;--panel2:#1f1640;--line:#3a2b6b;
-  --text:#efeaff;--muted:#a99fd0;--purple:#b26bff;--cyan:#38e8ff;
-  --ban:#ff4d6d;--mute:#ff9f1c;--warn:#ffd60a;--allow:#3ddc97;
+  --bg:#313338;--bg2:#2b2d31;--bg3:#1e1f22;--hover:#2e3035;--line:#3f4147;
+  --text:#dbdee1;--head:#f2f3f5;--muted:#949ba4;--link:#00a8fc;
+  --blurple:#5865f2;--green:#23a55a;--red:#da373c;--yellow:#f0b232;
+  --ban:#da373c;--mute:#e67e22;--warn:#f0b232;--allow:#23a55a;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100%}
-body{background:radial-gradient(1200px 600px at 10% -10%,#2a1257 0%,transparent 60%),radial-gradient(900px 500px at 110% 110%,#06364a 0%,transparent 60%),var(--bg);min-height:100vh}
-.wrap{max-width:560px;margin:0 auto;padding:20px 16px 40px}
-.host .wrap{max-width:1100px}
-.logo{font-family:"Press Start 2P",monospace;font-size:20px;line-height:1.4;text-align:center;letter-spacing:1px;
-  background:linear-gradient(90deg,var(--purple),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;margin:8px 0 4px}
-.host .logo{font-size:30px}
-.tag{color:var(--muted);text-align:center;font-size:13px;margin-bottom:20px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 0 24px rgba(178,107,255,.08)}
-h2{font-size:18px;margin-bottom:10px}
-p{line-height:1.5}
+html,body{background:var(--bg);color:var(--text);font-family:"Noto Sans","gg sans","Segoe UI",Helvetica,Arial,sans-serif;min-height:100%;font-size:15px}
+body{min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:0 0 40px}
+.host .wrap{max-width:1180px}
+/* channel header */
+.hdr{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;background:var(--bg);border-bottom:1px solid var(--bg3);box-shadow:0 1px 0 rgba(0,0,0,.2);padding:10px 16px;min-height:52px}
+.srv{width:32px;height:32px;border-radius:12px;background:var(--blurple);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.ch{font-weight:700;color:var(--head);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch .hash{color:var(--muted);font-weight:500;margin-right:4px;font-size:20px}
+.ch small{color:var(--muted);font-weight:500;font-size:13px;margin-left:8px;border-left:1px solid var(--line);padding-left:8px}
+.hr{margin-left:auto;display:flex;align-items:center;gap:8px}
+.timer{background:var(--red);color:#fff;border-radius:12px;padding:3px 11px;font-weight:700;font-size:14px;white-space:nowrap}
+.timer.calm{background:var(--blurple)}
+.host .timer{font-size:22px;padding:6px 16px;border-radius:18px}
+.bar{height:3px;background:var(--bg3)}
+.bar>i{display:block;height:100%;background:var(--blurple);transition:width .25s linear}
+.bar.low>i{background:var(--red)}
+.body{padding:14px 16px}
+/* embeds */
+.card{background:var(--bg2);border-left:4px solid var(--blurple);border-radius:4px;padding:14px 16px;margin-bottom:14px}
+.card.green{border-left-color:var(--green)}.card.red{border-left-color:var(--red)}.card.yellow{border-left-color:var(--yellow)}
+h2{font-size:16px;color:var(--head);margin-bottom:8px;font-weight:700}
+p{line-height:1.45}
 .muted{color:var(--muted)}
-input{width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:17px;outline:none}
-input:focus{border-color:var(--cyan)}
-button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-weight:800;font-size:16px;padding:14px 18px;color:#0b0718;background:linear-gradient(90deg,var(--purple),var(--cyan))}
-button:disabled{opacity:.35;cursor:not-allowed}
-button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
-button.danger{background:var(--ban);color:#fff}
+.sys{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:14px;padding:6px 0 10px}
+.sys b{color:var(--head)}
+/* inputs & buttons */
+input{width:100%;padding:12px;border-radius:4px;border:none;background:var(--bg3);color:var(--text);font-size:16px;outline:none;font-family:inherit}
+input:focus{box-shadow:0 0 0 2px var(--blurple)}
+label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:8px;letter-spacing:.3px}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:4px;font-weight:600;font-size:15px;padding:11px 16px;color:#fff;background:var(--blurple);transition:background .15s}
+button:hover{background:#4752c4}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.ghost{background:#4e5058}button.ghost:hover{background:#6d6f78}
+button.danger{background:var(--red)}button.danger:hover{background:#a12828}
+button.success{background:var(--green)}button.success:hover{background:#1a7f45}
 .full{width:100%;margin-top:12px}
-.rules li{margin:8px 0 8px 18px;line-height:1.45}
-.pill{display:inline-block;font-weight:800;font-size:12px;padding:3px 8px;border-radius:999px;color:#0b0718;margin-right:6px;min-width:52px;text-align:center}
-.p-BAN{background:var(--ban);color:#fff}.p-MUTE{background:var(--mute)}.p-WARN{background:var(--warn)}.p-ALLOW{background:var(--allow)}
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
-.timer{font-family:"Press Start 2P",monospace;font-size:20px;color:var(--cyan)}
-.timer.low{color:var(--ban)}
-.host .timer{font-size:44px}
-.bar{height:6px;background:var(--panel2);border-radius:6px;overflow:hidden;margin-bottom:14px}
-.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan));transition:width .25s linear}
-.msg{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
-.msg .user{font-size:12px;color:var(--cyan);margin-bottom:6px;font-weight:600}
-.msg .text{font-size:16px;line-height:1.4;margin-bottom:12px}
-.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.acts button{font-size:12px;padding:10px 2px;background:transparent;color:var(--text);border:1px solid var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row button{flex:1}
+/* role pills */
+.pill{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:12px;padding:2px 8px;border-radius:4px;background:var(--bg3);margin-right:6px;white-space:nowrap}
+.p-BAN{color:#ff6b6e}.p-BAN:before{background:var(--ban)}
+.p-MUTE{color:#ffa45c}.p-MUTE:before{background:var(--mute)}
+.p-WARN{color:#ffd166}.p-WARN:before{background:var(--warn)}
+.p-ALLOW{color:#4fdc8a}.p-ALLOW:before{background:var(--allow)}
+.rules{list-style:none;margin-top:6px}
+.rules li{margin:9px 0;line-height:1.45}
+/* chat messages */
+.msg{display:flex;gap:14px;padding:10px 4px;border-radius:4px}
+.msg:hover{background:var(--hover)}
+.av{width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:16px}
+.av.sm{width:28px;height:28px;font-size:12px}
+.mb{flex:1;min-width:0}
+.mn{font-weight:600;font-size:15px}
+.mn small{color:var(--muted);font-weight:400;font-size:12px;margin-left:6px}
+.text{font-size:15.5px;color:var(--text);margin:2px 0 8px;line-height:1.4;word-wrap:break-word}
+.host .text{font-size:19px}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.acts button{font-size:12px;padding:7px 2px;white-space:nowrap;background:var(--bg2);border:1px solid var(--line);color:var(--text);font-weight:600}
+.acts button:hover{background:#383a40}
 .acts button.on.a-BAN{background:var(--ban);border-color:var(--ban);color:#fff}
-.acts button.on.a-MUTE{background:var(--mute);border-color:var(--mute);color:#0b0718}
-.acts button.on.a-WARN{background:var(--warn);border-color:var(--warn);color:#0b0718}
-.acts button.on.a-ALLOW{background:var(--allow);border-color:var(--allow);color:#0b0718}
-.result{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;margin-top:6px}
-.ok{color:var(--allow);font-weight:800}.bad{color:var(--ban);font-weight:800}
-.why{font-size:13px;color:var(--muted);margin-top:6px}
-.big{font-family:"Press Start 2P",monospace;font-size:26px;text-align:center;margin:10px 0;color:var(--cyan)}
+.acts button.on.a-MUTE{background:var(--mute);border-color:var(--mute);color:#fff}
+.acts button.on.a-WARN{background:var(--warn);border-color:var(--warn);color:#1e1f22}
+.acts button.on.a-ALLOW{background:var(--allow);border-color:var(--allow);color:#fff}
+.reply{border-left:2px solid var(--line);margin:6px 0 2px;padding:2px 0 2px 10px;font-size:13.5px;color:var(--muted)}
+.ok{color:#4fdc8a;font-weight:700}.bad{color:#ff6b6e;font-weight:700}
+.divider{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:600;margin:12px 0}
+.divider:before,.divider:after{content:"";flex:1;height:1px;background:var(--line)}
+.divider.red{color:#ff6b6e}.divider.red:before,.divider.red:after{background:var(--red)}
+.big{font-size:34px;font-weight:800;color:var(--head);margin:4px 0}
+/* member list & ranking */
+.members{list-style:none}
+.members li{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:4px;font-weight:500;color:var(--text)}
+.members li:hover{background:var(--hover)}
+.members li.off{opacity:.35}
+.members .st{width:10px;height:10px;border-radius:50%;background:var(--green);margin-left:auto}
+.members li.wait .st{background:var(--muted)}
+.members .tick{margin-left:auto;color:#4fdc8a;font-weight:700;font-size:13px}
 .rank{list-style:none}
-.rank li{display:flex;justify-content:space-between;padding:10px 12px;border-radius:10px;margin-bottom:6px;background:var(--panel2);font-weight:600}
-.rank li.me{outline:2px solid var(--cyan)}
-.rank li .pos{color:var(--purple);margin-right:10px;font-family:"Press Start 2P",monospace;font-size:12px}
-.players{display:flex;flex-wrap:wrap;gap:8px}
-.players span{background:var(--panel2);border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-weight:600}
-.players span.off{opacity:.35}
-.players span.done{border-color:var(--allow);color:var(--allow)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:800px){.grid2{grid-template-columns:1fr}}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.row button{flex:1}
-#qr{background:#fff;padding:12px;border-radius:12px;display:inline-block}
+.rank li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:4px;margin-bottom:4px;background:var(--bg3);font-weight:600}
+.rank li.me{box-shadow:inset 0 0 0 2px var(--blurple)}
+.rank .pos{width:26px;text-align:center;color:var(--muted);font-weight:800}
+.rank .pts{margin-left:auto;color:var(--head)}
+.grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+#qr{background:#fff;padding:12px;border-radius:8px;display:inline-block}
 .center{text-align:center}
-.status{position:fixed;bottom:8px;right:10px;font-size:11px;color:var(--muted)}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ban);margin-right:5px}
-.dot.on{background:var(--allow)}
+.status{position:fixed;bottom:8px;right:10px;font-size:11px;color:var(--muted);background:var(--bg3);padding:3px 8px;border-radius:10px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:5px}
+.dot.on{background:var(--green)}
 </style>
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-<div class="wrap" id="app"><div class="logo">THE MODERATOR</div><p class="tag">Connecting…</p></div>
+<div class="wrap" id="app"><div class="hdr"><div class="srv">TM</div><div class="ch"><span class="hash">#</span>the-moderator</div></div><div class="body"><p class="muted">Connecting…</p></div></div>
 <div class="status"><span class="dot" id="dot"></span><span id="stxt">offline</span></div>
 <script>
 "use strict";
-/* ---------------- GAME CONTENT ---------------- */
 const ROUNDS = [
   [ {t:"gg ez, you guys are trash", a:"WARN", w:"Trash talk: toxic, but it doesn't attack anyone's identity."},
     {t:"Girls shouldn't play ranked, go back to the kitchen", a:"MUTE", w:"Sexism: attacks her for being a woman."},
@@ -140,7 +171,7 @@ const scoreFor = n => PTS[n] ?? 0;
 
 let client = null, connected = false;
 function connect(onMsg){
-  if (!window.mqtt) { app.innerHTML = '<div class="logo">THE MODERATOR</div><div class="card"><p>Could not load the game. Check your internet connection and reload.</p></div>'; return; }
+  if (!window.mqtt) { app.innerHTML = '<div class="body"><div class="card red"><p>Could not load the game. Check your internet connection and reload.</p></div></div>'; return; }
   client = mqtt.connect(BROKER, { clientId: "tm_" + rid(), clean: true, reconnectPeriod: 2000, connectTimeout: 10000, keepalive: 30 });
   client.on("connect", () => { connected = true; setStatus(); client.subscribe(IS_HOST ? [T + "join", T + "answer"] : [T + "state"], { qos: 1 }); onConnect && onConnect(); });
   client.on("close", () => { connected = false; setStatus(); });
@@ -151,22 +182,37 @@ let onConnect = null;
 function setStatus(){ document.getElementById("dot").className = "dot" + (connected ? " on" : ""); document.getElementById("stxt").textContent = connected ? "online" : "reconnecting…"; }
 function pub(sub, data, retain){ if (client) client.publish(T + sub, JSON.stringify(data), { qos: 1, retain: !!retain }); }
 
+/* ---------------- UI HELPERS (Discord look) ---------------- */
+const ICON = { BAN: "🔨", MUTE: "🔇", WARN: "⚠️", ALLOW: "✅" };
+const AV_BG = ["#ed4245","#23a55a","#5865f2","#f0b232","#eb459e","#3ba5d8","#e67e22","#9b59b6"];
+const NAME_C = ["#f47b67","#57f287","#a5b4fc","#fee75c","#f78fc6","#7dd3fc","#ffb86b","#d0a8ff"];
+const hueOf = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h % 8; };
+const avatar = (name, sm) => `<div class="av${sm ? " sm" : ""}" style="background:${AV_BG[hueOf(name)]}">${esc((String(name).trim()[0] || "?").toUpperCase())}</div>`;
+const nameColor = name => NAME_C[hueOf(name)];
+const clock = (offsetMin) => { const d = new Date(Date.now() - (offsetMin || 0) * 60000); return "Today at " + d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0"); };
+const header = (channel, sub, right) => `<div class="hdr"><div class="srv">TM</div><div class="ch"><span class="hash">#</span>${channel}${sub ? `<small>${sub}</small>` : ""}</div><div class="hr">${right || ""}</div></div>`;
+const medal = i => ["🥇","🥈","🥉"][i] || (i + 1);
+
 const RULES_HTML = `
-  <h2>Como jogar</h2>
+  <h2>📜 Como jogar</h2>
   <p class="muted">Você é o moderador de um jogo online. Cada rodada mostra 4 mensagens do chat. Dê uma ação para cada mensagem: cada ação é usada <b>uma única vez</b> por rodada.</p>
   <ul class="rules">
-    <li><span class="pill p-BAN">BAN</span>Ameaça, perseguição, doxing (expor dados pessoais), chantagem com imagens íntimas ou assédio sexual.</li>
-    <li><span class="pill p-MUTE">MUTE</span>Ofensa machista: atacar alguém por ser mulher.</li>
-    <li><span class="pill p-WARN">WARN</span>Toxicidade comum: xingamentos, trash talk, comentários grosseiros.</li>
-    <li><span class="pill p-ALLOW">ALLOW</span>Conversa normal, opiniões, denúncias e pedidos de ajuda.</li>
+    <li><span class="pill p-BAN">🔨 BAN</span>Ameaça, perseguição, doxing (expor dados pessoais), chantagem com imagens íntimas ou assédio sexual.</li>
+    <li><span class="pill p-MUTE">🔇 MUTE</span>Ofensa machista: atacar alguém por ser mulher.</li>
+    <li><span class="pill p-WARN">⚠️ WARN</span>Toxicidade comum: xingamentos, trash talk, comentários grosseiros.</li>
+    <li><span class="pill p-ALLOW">✅ ALLOW</span>Conversa normal, opiniões, denúncias e pedidos de ajuda.</li>
   </ul>
-  <p class="muted" style="margin-top:8px">8 rodadas · 60 segundos cada · aperte <b>DONE</b> antes do tempo acabar ou você zera a rodada.</p>
+  <p class="muted" style="margin-top:10px">8 rodadas · 60 segundos cada · aperte <b>DONE</b> antes do tempo acabar ou você zera a rodada.</p>
   <p class="muted" style="margin-top:6px">4 acertos = 1000 pts · 2 acertos = 500 · 1 acerto = 250 · 0 acertos = 0</p>`;
 
 function rankList(players, meId){
   const sorted = players.slice().sort((a,b) => b.total - a.total || a.time - b.time);
+  if (!sorted.length) return '<p class="muted">No players.</p>';
   return '<ol class="rank">' + sorted.map((p,i) =>
-    `<li class="${p.id === meId ? "me" : ""}"><span><span class="pos">${i+1}</span>${esc(p.name)}${p.id === meId ? " (you)" : ""}</span><span>${p.total} pts</span></li>`).join("") + "</ol>";
+    `<li class="${p.id === meId ? "me" : ""}"><span class="pos">${medal(i)}</span>${avatar(p.name, true)}<span style="color:${nameColor(p.name)}">${esc(p.name)}${p.id === meId ? ' <span class="muted">(you)</span>' : ""}</span><span class="pts">${p.total} pts</span></li>`).join("") + "</ol>";
+}
+function chatMsg(user, text, inner, k){
+  return `<div class="msg">${avatar(user)}<div class="mb"><div class="mn" style="color:${nameColor(user)}">${esc(user)}<small>${clock(3 - k)}</small></div><div class="text">${esc(text)}</div>${inner || ""}</div></div>`;
 }
 
 /* =========================================================
@@ -233,31 +279,40 @@ if (IS_HOST) {
 
   function render(){
     const ps = Object.entries(S.players);
-    let h = '<div class="logo">THE MODERATOR</div><p class="tag">Host screen · room "' + esc(ROOM) + '"</p>';
+    let h = "";
     if (S.phase === "lobby") {
       const act = ps.filter(([,p]) => active(p));
-      h += `<div class="grid2"><div class="card center"><h2>Scan to join</h2><div id="qr"></div><p class="muted" style="margin-top:10px;word-break:break-all">${esc(playerUrl)}</p></div>
-        <div class="card"><h2>Players online: ${act.length}</h2><div class="players">${ps.length ? ps.map(([,p]) => `<span class="${active(p) ? "" : "off"}">${esc(p.name)}</span>`).join("") : '<span class="muted" style="border:none;background:none">Waiting for players…</span>'}</div>
-        <button class="full" id="start" ${act.length ? "" : "disabled"}>Start match</button>
-        ${ps.length ? '<button class="full ghost" id="close">Remove everyone</button>' : ""}</div></div>
-        <div class="card">${RULES_HTML}</div>`;
+      h += header("lobby", "host · room " + esc(ROOM), `<span class="timer calm">👥 ${act.length} online</span>`) + '<div class="body">';
+      h += `<div class="grid2"><div>
+          <div class="card center"><h2>📱 Scan to join</h2><div id="qr"></div><p class="muted" style="margin-top:10px;word-break:break-all;font-size:13px">${esc(playerUrl)}</p></div>
+          <div class="card yellow">${RULES_HTML}</div></div>
+        <div><div class="card green"><h2>Online — ${act.length}</h2>
+          <ul class="members">${ps.length ? ps.map(([,p]) => `<li class="${active(p) ? "" : "off"}">${avatar(p.name, true)}<span style="color:${nameColor(p.name)}">${esc(p.name)}</span><span class="st"></span></li>`).join("") : '<li class="muted">Waiting for players…</li>'}</ul>
+          <button class="full success" id="start" ${act.length ? "" : "disabled"}>▶ Start match</button>
+          ${ps.length ? '<button class="full ghost" id="close">Remove everyone</button>' : ""}</div></div></div>`;
     } else if (S.phase === "round") {
       const set = ROUNDS[S.round - 1];
-      h += `<div class="topbar"><h2>Round ${S.round} / ${ROUNDS.length}</h2><div class="timer" id="timer">60</div></div><div class="bar"><i id="tbar"></i></div>
-        <div class="grid2"><div>${S.order.map((i,k) => `<div class="msg"><div class="user">${esc(S.users[k] || "player")}</div><div class="text">${esc(set[i].t)}</div></div>`).join("")}</div>
-        <div class="card"><h2>Answered: ${Object.keys(S.answers).length} / ${ps.filter(([,p]) => active(p)).length}</h2>
-        <div class="players">${ps.map(([id,p]) => `<span class="${S.answers[id] ? "done" : ""}">${esc(p.name)}</span>`).join("")}</div>
-        <button class="full ghost" id="end">End round now</button></div></div>`;
+      const actN = ps.filter(([,p]) => active(p)).length;
+      h += header("ranked-lobby", `round ${S.round}/${ROUNDS.length}`, '<span class="timer" id="timer">⏱ 60s</span>') + '<div class="bar"><i id="tbar"></i></div><div class="body">';
+      h += `<div class="grid2"><div><div class="sys">🛡️ <span>Moderators are reviewing these messages…</span></div>
+          ${S.order.map((i,k) => chatMsg(S.users[k] || "player", set[i].t, "", k)).join("")}</div>
+        <div><div class="card"><h2>Answered — ${Object.keys(S.answers).length} / ${actN}</h2>
+          <ul class="members">${ps.map(([id,p]) => `<li class="${S.answers[id] ? "" : "wait"}">${avatar(p.name, true)}<span style="color:${nameColor(p.name)}">${esc(p.name)}</span>${S.answers[id] ? '<span class="tick">✔ done</span>' : '<span class="st"></span>'}</li>`).join("")}</ul>
+          <button class="full ghost" id="end">End round now</button></div></div></div>`;
     } else if (S.phase === "reveal") {
       const set = ROUNDS[S.round - 1];
       const perfect = Object.values(S.answers).filter(a => a.correct === 4 && !a.late).length;
-      h += `<div class="topbar"><h2>Round ${S.round} / ${ROUNDS.length} · answers</h2><span class="muted">${perfect} perfect moderator${perfect === 1 ? "" : "s"}</span></div>
-        <div class="grid2"><div>${S.order.map((i,k) => `<div class="msg"><div class="user">${esc(S.users[k] || "player")}</div><div class="text">${esc(set[i].t)}</div><span class="pill p-${set[i].a}">${set[i].a}</span><div class="why">${esc(set[i].w)}</div></div>`).join("")}</div>
-        <div class="card"><h2>Ranking</h2>${rankList(publicState().players)}<button class="full" id="next">${S.round < ROUNDS.length ? "Next round" : "Final ranking"}</button></div></div>`;
+      h += header("ranked-lobby", `round ${S.round}/${ROUNDS.length} · answers`, `<span class="timer calm">⭐ ${perfect} perfect</span>`) + '<div class="body">';
+      h += `<div class="grid2"><div>
+          ${S.order.map((i,k) => chatMsg(S.users[k] || "player", set[i].t, `<span class="pill p-${set[i].a}">${ICON[set[i].a]} ${set[i].a}</span><div class="reply">🛡️ ${esc(set[i].w)}</div>`, k)).join("")}</div>
+        <div><div class="card"><h2>🏆 Ranking</h2>${rankList(publicState().players)}
+          <button class="full" id="next">${S.round < ROUNDS.length ? "Next round ▸" : "Final ranking 🏆"}</button></div></div></div>`;
     } else if (S.phase === "final") {
-      h += `<div class="card"><div class="big">FINAL RANKING</div>${rankList(publicState().players)}
-        <div class="row" style="margin-top:12px"><button id="again">New match</button><button class="danger" id="close">Remove everyone</button></div></div>`;
+      h += header("results", "final ranking") + '<div class="body">';
+      h += `<div class="card yellow" style="max-width:640px;margin:0 auto 14px"><div class="big center">🏆 FINAL RANKING</div>${rankList(publicState().players)}
+        <div class="row" style="margin-top:14px"><button class="success" id="again">New match</button><button class="danger" id="close">Remove everyone</button></div></div>`;
     }
+    h += "</div>";
     app.innerHTML = h;
     const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
     on("start", startGame); on("close", closeRoom); on("end", endRound); on("next", next); on("again", newMatch);
@@ -277,7 +332,7 @@ else {
   let myId = ls.get("tm_id"); if (!myId) { myId = rid(); ls.set("tm_id", myId); }
   let myName = ls.get("tm_name") || "";
   let joined = false, myKick = null, st = null, offset = 0, kickedMsg = "";
-  let sel = {}, selKey = "", sentKey = "", lastRenderKey = "";
+  let sel = {}, selKey = "", sentKey = null, lastRenderKey = "";
 
   function onMsg(sub, d, packet){
     if (sub !== "state" || !d || !d.gameId) return;
@@ -296,6 +351,7 @@ else {
     if (!n) { inp && inp.focus(); return; }
     myName = n; ls.set("tm_name", n); joined = true; kickedMsg = "";
     myKick = st ? st.kickId : null;
+    if (st) { const key = st.gameId + ":" + st.round; if (key !== selKey) { selKey = key; sel = {}; } }
     pub("join", { id: myId, name: myName, kickId: myKick });
     render();
   }
@@ -312,7 +368,7 @@ else {
     const full = Object.keys(sel).length === 4;
     const left = timeLeft();
     b.disabled = !full || left <= 0;
-    b.textContent = left <= 0 ? "Time's up · 0 points" : full ? "DONE" : `DONE (${Object.keys(sel).length}/4)`;
+    b.textContent = left <= 0 ? "Time's up · 0 points" : full ? "DONE ✔" : `DONE (${Object.keys(sel).length}/4)`;
   }
   function pick(i, a){
     if (timeLeft() <= 0) return;
@@ -327,51 +383,62 @@ else {
   }
 
   function render(){
-    let h = '<div class="logo">THE MODERATOR</div>';
+    let h = "";
     if (!joined) {
-      h += `<div class="card"><h2>Enter your name</h2>
-        ${kickedMsg ? `<p class="muted" style="margin-bottom:10px">${esc(kickedMsg)}</p>` : ""}
-        <input id="name" maxlength="20" placeholder="Your name" value="${esc(myName)}" autocomplete="off">
-        <button class="full" id="join">Join</button></div>`;
+      h += header("the-moderator") + `<div class="body">
+        <div class="card center" style="margin-top:20px;border-left:none;padding:28px 20px">
+          <div class="srv" style="width:72px;height:72px;border-radius:24px;font-size:24px;margin:0 auto 14px">TM</div>
+          <h2 style="font-size:22px">The Moderator</h2>
+          <p class="muted" style="margin-bottom:18px">You've been invited to join a server</p>
+          ${kickedMsg ? `<p class="bad" style="margin-bottom:12px;font-weight:600">${esc(kickedMsg)}</p>` : ""}
+          <div style="text-align:left"><label for="name">Your name</label>
+          <input id="name" maxlength="20" placeholder="Enter your name" value="${esc(myName)}" autocomplete="off"></div>
+          <button class="full" id="join">Join</button></div></div>`;
       lastRenderKey = "";
     } else if (!st) {
-      h += '<div class="card center"><p>Connecting to the room…</p></div>';
+      h += header("the-moderator") + '<div class="body"><div class="sys">⏳ <span>Connecting to the room…</span></div></div>';
     } else {
       const me = st.players.find(p => p.id === myId);
       const answered = (st.answered || []).includes(myId) || sentKey === selKey;
       if (st.phase === "lobby") {
-        h += `<div class="card"><h2>Olá, ${esc(myName)}! 👋</h2><p class="muted">Você está no lobby. Leia as regras enquanto o host inicia a partida.</p>
-          <p class="muted" style="margin-top:6px">${st.players.length} jogador${st.players.length === 1 ? "" : "es"} na sala.</p></div>
-          <div class="card">${RULES_HTML}</div>`;
+        h += header("lobby", `${st.players.length} online`) + '<div class="body">';
+        h += `<div class="sys">➡️ <span><b>${esc(myName)}</b> entrou no servidor. Bem-vindo(a)! 👋</span></div>
+          <div class="card yellow">${RULES_HTML}</div>
+          <div class="divider">aguardando o host iniciar a partida</div>
+          <ul class="members">${st.players.map(p => `<li>${avatar(p.name, true)}<span style="color:${nameColor(p.name)}">${esc(p.name)}${p.id === myId ? ' <span class="muted">(você)</span>' : ""}</span><span class="st"></span></li>`).join("")}</ul>`;
       } else if (st.phase === "round") {
         const set = ROUNDS[st.round - 1];
-        h += `<div class="topbar"><h2>Round ${st.round} / ${ROUNDS.length}</h2><div class="timer" id="timer"></div></div><div class="bar"><i id="tbar"></i></div>`;
+        h += header("ranked-lobby", `round ${st.round}/${ROUNDS.length}`, '<span class="timer" id="timer"></span>') + '<div class="bar"><i id="tbar"></i></div><div class="body">';
         if (answered) {
-          h += `<div class="card center"><div class="big">✔</div><p>Answer sent! Waiting for the other moderators…</p></div>`;
+          h += `<div class="card green center"><div class="big">✔</div><p>Answer sent! Waiting for the other moderators…</p></div>`;
         } else {
-          h += st.order.map((i,k) => `<div class="msg"><div class="user">${esc((st.users || [])[k] || "player")}</div><div class="text">${esc(set[i].t)}</div>
-            <div class="acts">${ACTIONS.map(a => `<button class="a-${a} ${sel[i] === a ? "on" : ""}" data-i="${i}" data-a="${a}">${a}</button>`).join("")}</div></div>`).join("");
+          h += `<div class="sys">🛡️ <span>You are the moderator. Use each action <b>once</b>.</span></div>`;
+          h += st.order.map((i,k) => chatMsg((st.users || [])[k] || "player", set[i].t,
+            `<div class="acts">${ACTIONS.map(a => `<button class="a-${a} ${sel[i] === a ? "on" : ""}" data-i="${i}" data-a="${a}">${ICON[a]} ${a}</button>`).join("")}</div>`, k)).join("");
           h += `<button class="full" id="done">DONE</button>`;
         }
       } else if (st.phase === "reveal" || st.phase === "final") {
         const set = ROUNDS[st.round - 1];
         const r = (st.results || {})[myId];
         if (st.phase === "reveal") {
-          h += `<div class="card center"><h2>Round ${st.round} / ${ROUNDS.length}</h2>
-            <div class="big">+${r ? r.pts : 0}</div><p class="muted">${!r || r.missed ? "No answer this round." : r.late ? "Too late: 0 points." : r.correct + " of 4 correct"}</p>
+          h += header("ranked-lobby", `round ${st.round}/${ROUNDS.length} · answers`) + '<div class="body">';
+          const good = r && !r.missed && !r.late && r.pts > 0;
+          h += `<div class="card ${good ? "green" : "red"} center"><div class="big">+${r ? r.pts : 0}</div>
+            <p class="muted">${!r || r.missed ? "No answer this round." : r.late ? "Too late: 0 points." : r.correct + " of 4 correct"}</p>
             <p style="margin-top:6px">Total: <b>${me ? me.total : 0} pts</b></p></div>`;
           h += st.order.map((i,k) => { const mine = sel[i]; const ok = mine === set[i].a;
-            return `<div class="msg"><div class="text">${esc(set[i].t)}</div>
-              <div class="result"><span>Answer: <span class="pill p-${set[i].a}">${set[i].a}</span></span>${mine ? `<span class="${ok ? "ok" : "bad"}">${ok ? "✔" : "✘ you: " + mine}</span>` : ""}</div>
-              <div class="why">${esc(set[i].w)}</div></div>`; }).join("");
-          h += '<p class="muted center">Waiting for the host…</p>';
+            return chatMsg((st.users || [])[k] || "player", set[i].t,
+              `<span class="pill p-${set[i].a}">${ICON[set[i].a]} ${set[i].a}</span>${mine ? `<span class="${ok ? "ok" : "bad"}">${ok ? "✔ correct" : "✘ you: " + mine}</span>` : ""}<div class="reply">🛡️ ${esc(set[i].w)}</div>`, k); }).join("");
+          h += '<div class="divider">waiting for the host</div>';
         } else {
           const sorted = st.players.slice().sort((a,b) => b.total - a.total || a.time - b.time);
           const pos = sorted.findIndex(p => p.id === myId) + 1;
-          h += `<div class="card"><div class="big">GAME OVER</div><p class="center">${pos ? `You finished <b>#${pos}</b> with <b>${me.total} pts</b>` : ""}</p></div>
-            <div class="card"><h2>Final ranking</h2>${rankList(st.players, myId)}</div>`;
+          h += header("results", "game over") + '<div class="body">';
+          h += `<div class="card yellow center"><div class="big">${pos ? medal(pos - 1) : "🏁"}</div><p>${pos ? `You finished <b>#${pos}</b> with <b>${me.total} pts</b>` : "Game over"}</p></div>
+            <div class="card"><h2>🏆 Final ranking</h2>${rankList(st.players, myId)}</div>`;
         }
       }
+      h += "</div>";
       lastRenderKey = [joined, st.phase, st.gameId, st.round, answered, st.players.length, st.players.map(p => p.name + p.total).join("|")].join("/");
     }
     app.innerHTML = h;
@@ -389,8 +456,8 @@ else {
 function updateTimer(deadline){
   const el = document.getElementById("timer"), bar = document.getElementById("tbar");
   const left = Math.max(0, deadline - Date.now());
-  if (el) { el.textContent = Math.ceil(left / 1000); el.className = "timer" + (left < 10000 ? " low" : ""); }
-  if (bar) bar.style.width = (left / ROUND_MS * 100) + "%";
+  if (el) { el.textContent = "⏱ " + Math.ceil(left / 1000) + "s"; el.className = "timer" + (left < 10000 ? "" : " calm"); }
+  if (bar) { bar.style.width = (left / ROUND_MS * 100) + "%"; bar.parentNode.className = "bar" + (left < 10000 ? " low" : ""); }
 }
 </script>
 </body>
