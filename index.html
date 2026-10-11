@@ -152,16 +152,16 @@ function setStatus(){ document.getElementById("dot").className = "dot" + (connec
 function pub(sub, data, retain){ if (client) client.publish(T + sub, JSON.stringify(data), { qos: 1, retain: !!retain }); }
 
 const RULES_HTML = `
-  <h2>How to play</h2>
-  <p class="muted">You are the moderator of an online game. Each round shows 4 chat messages. Give each message one action: every action is used <b>once</b> per round.</p>
+  <h2>Como jogar</h2>
+  <p class="muted">Você é o moderador de um jogo online. Cada rodada mostra 4 mensagens do chat. Dê uma ação para cada mensagem: cada ação é usada <b>uma única vez</b> por rodada.</p>
   <ul class="rules">
-    <li><span class="pill p-BAN">BAN</span>Threats, stalking, doxing (sharing private info), sextortion or sexual harassment.</li>
-    <li><span class="pill p-MUTE">MUTE</span>Sexist insults: attacking someone for being a woman.</li>
-    <li><span class="pill p-WARN">WARN</span>General toxicity: insults, trash talk, rude comments.</li>
-    <li><span class="pill p-ALLOW">ALLOW</span>Normal chat, opinions, and reports or calls for help.</li>
+    <li><span class="pill p-BAN">BAN</span>Ameaça, perseguição, doxing (expor dados pessoais), chantagem com imagens íntimas ou assédio sexual.</li>
+    <li><span class="pill p-MUTE">MUTE</span>Ofensa machista: atacar alguém por ser mulher.</li>
+    <li><span class="pill p-WARN">WARN</span>Toxicidade comum: xingamentos, trash talk, comentários grosseiros.</li>
+    <li><span class="pill p-ALLOW">ALLOW</span>Conversa normal, opiniões, denúncias e pedidos de ajuda.</li>
   </ul>
-  <p class="muted" style="margin-top:8px">8 rounds · 60 seconds each · press <b>DONE</b> before time runs out or you score 0.</p>
-  <p class="muted" style="margin-top:6px">4 correct = 1000 pts · 2 correct = 500 · 1 correct = 250 · 0 correct = 0</p>`;
+  <p class="muted" style="margin-top:8px">8 rodadas · 60 segundos cada · aperte <b>DONE</b> antes do tempo acabar ou você zera a rodada.</p>
+  <p class="muted" style="margin-top:6px">4 acertos = 1000 pts · 2 acertos = 500 · 1 acerto = 250 · 0 acertos = 0</p>`;
 
 function rankList(players, meId){
   const sorted = players.slice().sort((a,b) => b.total - a.total || a.time - b.time);
